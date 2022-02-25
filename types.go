@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -36,7 +37,7 @@ func (c *config) WriteTo(w io.Writer) (n int64, err error) {
 	var buf bytes.Buffer
 
 	for _, sec := range c.Sections {
-		if sec.Name == "" {
+		if sec.Name == "" || c.isPlaceholderName(sec.Name, sec.Type) {
 			fmt.Fprintf(&buf, "\nconfig %s\n", sec.Type)
 		} else {
 			fmt.Fprintf(&buf, "\nconfig %s '%s'\n", sec.Type, sec.Name)
@@ -66,6 +67,11 @@ func (c *config) Get(name string) *section {
 		return sec
 	}
 	return c.getNamed(name)
+}
+
+func (c *config) isPlaceholderName(name, secType string) bool {
+	expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
+	return regexp.MustCompile(expr).MatchString(name)
 }
 
 func (c *config) getNamed(name string) *section {
