@@ -17,6 +17,8 @@ import (
 // file in testdata/, we can use the dumps to read them back as test case
 // expectations.
 
+var placeholderNameRegexp *regexp.Regexp
+
 // config represents a file in UCI. It consists of sections.
 type config struct {
 	Name     string     `json:"name"`
@@ -70,8 +72,12 @@ func (c *config) Get(name string) *section {
 }
 
 func (c *config) isPlaceholderName(name, secType string) bool {
-	expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
-	return regexp.MustCompile(expr).MatchString(name)
+	if placeholderNameRegexp == nil {
+		expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
+		placeholderNameRegexp = regexp.MustCompile(expr)
+	}
+
+	return placeholderNameRegexp.MatchString(name)
 }
 
 func (c *config) getNamed(name string) *section {
