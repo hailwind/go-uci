@@ -1,4 +1,4 @@
-module github.com/digineo/go-uci
+module github.com/wsiner/go-uci
 
 go 1.13
 
