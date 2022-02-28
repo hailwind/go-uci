@@ -216,6 +216,20 @@ func TestGet(t *testing.T) {
 	assert.Nil(values)
 }
 
+func TestGetInt(t *testing.T) {
+	assert := assert.New(t)
+
+	r := NewTree("testdata")
+
+	value, exists := r.GetInt("upnpd", "config", "download")
+	assert.True(exists)
+	assert.True(value == 1024)
+
+	value, exists = r.GetInt("upnpd", "config", "upload")
+	assert.True(exists)
+	assert.True(value == 512)
+}
+
 func TestDel(t *testing.T) {
 	assert := assert.New(t)
 	r := NewTree("testdata")
@@ -333,6 +347,33 @@ func TestGetBool_Other(t *testing.T) {
 
 	_, ok := r.GetBool("wireless", "guest_radio0", "mode")
 	assert.False(ok)
+}
+
+func TestGetDefaultBool(t *testing.T) {
+	assert := assert.New(t)
+
+	r := NewTree("testdata")
+
+	value1 := r.GetDefaultBool("upnpd", "config", "not_exists1", true)
+	assert.True(value1)
+
+	value2 := r.GetDefaultBool("upnpd", "config", "not_exists2", false)
+	assert.False(value2)
+
+	value3 := r.GetDefaultBool("upnpd", "config", "enabled", false)
+	assert.True(value3)
+}
+
+func TestGetSlice(t *testing.T) {
+	assert := assert.New(t)
+
+	r := NewTree("testdata")
+	values, exists := r.GetSlice("upnpd", "@perm_rule[0]", "ext_ports", "-")
+
+	assert.True(exists)
+	assert.True(len(values) == 2)
+	assert.True(values[0] == "1024")
+	assert.True(values[1] == "65535")
 }
 
 func TestRevert(t *testing.T) {

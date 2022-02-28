@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -50,10 +52,24 @@ type Tree interface {
 	// config section and the option exists.
 	GetLast(config, section, option string) (string, bool)
 
+	// GetInt retrieves the value that was defined for a fully
+	// qualified option and convert it to int, and a boolean indicating whether the config file,
+	// config section and the option exists.
+	GetInt(config, section, option string) (int, bool)
+
 	// GetBool works the same way as GetLast does but interprets the last
 	// specified value as a boolean.  If the found value can't be
 	// interpreted as either true or false, it will return nil and false.
 	GetBool(config, section, option string) (bool, bool)
+
+	//	GetBool works the same way as GetBool does but can return the default value if
+	//	the config file, config section and the option not exists
+	GetDefaultBool(config, section, option string, backup bool) bool
+
+	// GetSlice split the value that retrieved from GetLast by separator,
+	// and the second returned boolean value indicating whether the config file,
+	// config section and the option exists.
+	GetSlice(config, section, option, separator string) ([]string, bool)
 
 	// Set replaces the fully qualified option with the given values. It
 	// returns whether the config file and section exists. For new files
@@ -200,6 +216,20 @@ func (t *tree) GetLast(config, section, option string) (string, bool) {
 	return vals[len(vals)-1], true
 }
 
+func (t *tree) GetInt(config, section, option string) (int, bool) {
+	value, ok := t.GetLast(config, section, option)
+	if !ok {
+		return 0, false
+	}
+
+	atoi, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, false
+	}
+
+	return atoi, true
+}
+
 func (t *tree) GetBool(config, section, option string) (bool, bool) {
 	val, ok := t.GetLast(config, section, option)
 	if !ok {
@@ -213,6 +243,26 @@ func (t *tree) GetBool(config, section, option string) (bool, bool) {
 	default:
 		return false, false
 	}
+}
+
+func (t *tree) GetDefaultBool(config, section, option string, backup bool) bool {
+	val, ok := t.GetBool(config, section, option)
+
+	if ok {
+		return val
+	}
+
+	return backup
+}
+
+func (t *tree) GetSlice(config, section, option, separator string) ([]string, bool) {
+	value, ok := t.GetLast(config, section, option)
+
+	if !ok {
+		return []string{}, false
+	}
+
+	return strings.Split(value, separator), true
 }
 
 func (t *tree) ensureConfigLoaded(config string) (*config, bool) {
