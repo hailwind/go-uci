@@ -17,8 +17,6 @@ import (
 // file in testdata/, we can use the dumps to read them back as test case
 // expectations.
 
-var placeholderNameRegexp *regexp.Regexp
-
 // config represents a file in UCI. It consists of sections.
 type config struct {
 	Name     string     `json:"name"`
@@ -40,18 +38,18 @@ func (c *config) WriteTo(w io.Writer) (n int64, err error) {
 
 	for _, sec := range c.Sections {
 		if sec.Name == "" || c.isPlaceholderName(sec.Name, sec.Type) {
-			fmt.Fprintf(&buf, "\nconfig %s\n", sec.Type)
+			_, _ = fmt.Fprintf(&buf, "\nconfig %s\n", sec.Type)
 		} else {
-			fmt.Fprintf(&buf, "\nconfig %s '%s'\n", sec.Type, sec.Name)
+			_, _ = fmt.Fprintf(&buf, "\nconfig %s '%s'\n", sec.Type, sec.Name)
 		}
 
 		for _, opt := range sec.Options {
 			switch opt.Type {
 			case TypeOption:
-				fmt.Fprintf(&buf, "\toption %s '%s'\n", opt.Name, opt.Values[0])
+				_, _ = fmt.Fprintf(&buf, "\toption %s '%s'\n", opt.Name, opt.Values[0])
 			case TypeList:
 				for _, v := range opt.Values {
-					fmt.Fprintf(&buf, "\tlist %s '%s'\n", opt.Name, v)
+					_, _ = fmt.Fprintf(&buf, "\tlist %s '%s'\n", opt.Name, v)
 				}
 			}
 		}
@@ -72,10 +70,8 @@ func (c *config) Get(name string) *section {
 }
 
 func (c *config) isPlaceholderName(name, secType string) bool {
-	if placeholderNameRegexp == nil {
-		expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
-		placeholderNameRegexp = regexp.MustCompile(expr)
-	}
+	expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
+	placeholderNameRegexp := regexp.MustCompile(expr)
 
 	return placeholderNameRegexp.MatchString(name)
 }
