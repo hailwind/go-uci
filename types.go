@@ -183,12 +183,20 @@ func (c *config) Merge(s *section) *section {
 
 func (c *config) Del(name string) {
 	var i int
+	indexs := make(map[string]int, 5)
 	for i = 0; i < len(c.Sections); i++ {
 		if IsPlaceholderName(name, c.Sections[i].Type) {
-			index, _ := PlaceholderSection2Num(name)
-			if index == i {
+			_, index, _ := unmangleSectionName(name)
+
+			if _, ok := indexs[c.Sections[i].Type]; !ok {
+				indexs[c.Sections[i].Type] = 0
+			}
+
+			if index == indexs[c.Sections[i].Type] {
 				break
 			}
+
+			indexs[c.Sections[i].Type]++
 		}
 
 		if c.Sections[i].Name == name {
@@ -328,7 +336,7 @@ func (o *option) MergeValues(vs ...string) {
 	}
 }
 
-var placeholderSectionPattern, _ = regexp.Compile(`^@.*?\[(\d+)\]$`)
+var placeholderSectionPattern, _ = regexp.Compile(`^@(.*?)\[(\d+)\]$`)
 
 func Num2PlaceholderSection(sectionType string, num int) string {
 	return strings.Join([]string{"@", sectionType, "[", strconv.Itoa(num), "]"}, "")
@@ -337,11 +345,11 @@ func Num2PlaceholderSection(sectionType string, num int) string {
 func PlaceholderSection2Num(section string) (int, error) {
 	submatchs := placeholderSectionPattern.FindStringSubmatch(section)
 
-	if len(submatchs) < 2 {
+	if len(submatchs) < 3 {
 		return 0, errors.New("匿名section 格式错误")
 	}
 
-	atoi, _ := strconv.Atoi(submatchs[1])
+	atoi, _ := strconv.Atoi(submatchs[2])
 
 	return atoi, nil
 }
