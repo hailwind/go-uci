@@ -37,7 +37,7 @@ func (c *config) WriteTo(w io.Writer) (n int64, err error) {
 	var buf bytes.Buffer
 
 	for _, sec := range c.Sections {
-		if sec.Name == "" || c.isPlaceholderName(sec.Name, sec.Type) {
+		if sec.Name == "" || IsPlaceholderName(sec.Name, sec.Type) {
 			_, _ = fmt.Fprintf(&buf, "\nconfig %s\n", sec.Type)
 		} else {
 			_, _ = fmt.Fprintf(&buf, "\nconfig %s '%s'\n", sec.Type, sec.Name)
@@ -67,13 +67,6 @@ func (c *config) Get(name string) *section {
 		return sec
 	}
 	return c.getNamed(name)
-}
-
-func (c *config) isPlaceholderName(name, secType string) bool {
-	expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
-	placeholderNameRegexp := regexp.MustCompile(expr)
-
-	return placeholderNameRegexp.MatchString(name)
 }
 
 func (c *config) getNamed(name string) *section {
@@ -191,6 +184,13 @@ func (c *config) Merge(s *section) *section {
 func (c *config) Del(name string) {
 	var i int
 	for i = 0; i < len(c.Sections); i++ {
+		if IsPlaceholderName(name, c.Sections[i].Type) {
+			index, _ := PlaceholderSection2Num(name)
+			if index == i {
+				break
+			}
+		}
+
 		if c.Sections[i].Name == name {
 			break
 		}
@@ -326,4 +326,29 @@ func (o *option) MergeValues(vs ...string) {
 		}
 		o.AddValue(v)
 	}
+}
+
+var placeholderSectionPattern, _ = regexp.Compile(`^@.*?\[(\d+)\]$`)
+
+func Num2PlaceholderSection(sectionType string, num int) string {
+	return strings.Join([]string{"@", sectionType, "[", strconv.Itoa(num), "]"}, "")
+}
+
+func PlaceholderSection2Num(section string) (int, error) {
+	submatchs := placeholderSectionPattern.FindStringSubmatch(section)
+
+	if len(submatchs) < 2 {
+		return 0, errors.New("匿名section 格式错误")
+	}
+
+	atoi, _ := strconv.Atoi(submatchs[1])
+
+	return atoi, nil
+}
+
+func IsPlaceholderName(name, secType string) bool {
+	expr := strings.Join([]string{"^@", secType, `\[(\d+)\]$`}, "")
+	placeholderNameRegexp := regexp.MustCompile(expr)
+
+	return placeholderNameRegexp.MatchString(name)
 }
