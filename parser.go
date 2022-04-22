@@ -226,9 +226,9 @@ func (s *scanner) each(fn func(token) bool) bool {
 }
 
 // parse tries to parse a named input string into a config object.
-func parse(name, input string) (cfg *config, err error) {
+func parse(name, input string) (cfg *Config, err error) {
 	cfg = newConfig(name)
-	var sec *section
+	var sec *Section
 
 	scan(name, input).each(func(tok token) bool {
 		switch tok.typ { //nolint:exhaustive

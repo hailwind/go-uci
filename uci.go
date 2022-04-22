@@ -98,11 +98,13 @@ type Tree interface {
 
 	// DelSection remove a config section and its options.
 	DelSection(config, section string)
+
+	EnsureConfigLoaded(config string) (*Config, bool)
 }
 
 type tree struct {
 	dir     string
-	configs map[string]*config
+	configs map[string]*Config
 
 	sync.Mutex
 }
@@ -113,7 +115,7 @@ var _ Tree = (*tree)(nil)
 func NewTree(root string) Tree {
 	return &tree{
 		dir:     root,
-		configs: make(map[string]*config),
+		configs: make(map[string]*Config),
 	}
 }
 
@@ -144,7 +146,7 @@ func (t *tree) loadConfig(name string) error {
 	}
 
 	if t.configs == nil {
-		t.configs = make(map[string]*config)
+		t.configs = make(map[string]*Config)
 	}
 	t.configs[name] = cfg
 	return nil
@@ -178,7 +180,7 @@ func (t *tree) Revert(configs ...string) {
 }
 
 func (t *tree) GetSections(config string, secType string) ([]string, bool) {
-	cfg, exists := t.ensureConfigLoaded(config)
+	cfg, exists := t.EnsureConfigLoaded(config)
 	if !exists {
 		return nil, false
 	}
@@ -265,7 +267,7 @@ func (t *tree) GetSlice(config, section, option, separator string) ([]string, bo
 	return strings.Split(value, separator), true
 }
 
-func (t *tree) ensureConfigLoaded(config string) (*config, bool) {
+func (t *tree) EnsureConfigLoaded(config string) (*Config, bool) {
 	cfg, loaded := t.configs[config]
 	if !loaded {
 		if err := t.loadConfig(config); err != nil {
@@ -276,7 +278,7 @@ func (t *tree) ensureConfigLoaded(config string) (*config, bool) {
 	return cfg, true
 }
 
-func (t *tree) lookupOption(config, section, option string) (*option, bool) {
+func (t *tree) lookupOption(config, section, option string) (*Option, bool) {
 	cfg, exists := t.configs[config]
 	if !exists {
 		return nil, false
@@ -303,7 +305,7 @@ func (t *tree) SetType(config, section, option string, typ OptionType, values ..
 	t.Lock()
 	defer t.Unlock()
 
-	cfg, ok := t.ensureConfigLoaded(config)
+	cfg, ok := t.EnsureConfigLoaded(config)
 	if !ok {
 		return false
 	}
@@ -332,7 +334,7 @@ func (t *tree) Del(config, section, option string) {
 	t.Lock()
 	defer t.Unlock()
 
-	cfg, ok := t.ensureConfigLoaded(config)
+	cfg, ok := t.EnsureConfigLoaded(config)
 	if !ok {
 		// we want to delete option, but neither config, nor section,
 		// nor config do exist. hence, we've reached our desired state
@@ -354,7 +356,7 @@ func (t *tree) AddSection(config, section, typ string) error {
 	t.Lock()
 	defer t.Unlock()
 
-	cfg, ok := t.ensureConfigLoaded(config)
+	cfg, ok := t.EnsureConfigLoaded(config)
 	if !ok {
 		cfg = newConfig(config)
 		cfg.tainted = true
@@ -376,7 +378,7 @@ func (t *tree) DelSection(config, section string) {
 	t.Lock()
 	defer t.Unlock()
 
-	cfg, ok := t.ensureConfigLoaded(config)
+	cfg, ok := t.EnsureConfigLoaded(config)
 	if !ok {
 		return
 	}
@@ -384,7 +386,7 @@ func (t *tree) DelSection(config, section string) {
 	cfg.tainted = true
 }
 
-func (t *tree) saveConfig(c *config) error {
+func (t *tree) saveConfig(c *Config) error {
 	// We need to create a tempfile in the tree's base directory, since
 	// os.Rename fails when that directory and ioutil.Tempdir are on
 	// different file systems (os.Rename being not much more than a shim

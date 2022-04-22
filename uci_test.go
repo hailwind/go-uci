@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func loadExpected(t *testing.T, name string) *config {
+func loadExpected(t *testing.T, name string) *Config {
 	t.Helper()
 
 	f, err := os.Open(filepath.Join("testdata", name+".json"))
@@ -22,7 +22,7 @@ func loadExpected(t *testing.T, name string) *config {
 	}
 	defer f.Close()
 
-	expected := &config{}
+	expected := &Config{}
 	err = json.NewDecoder(f).Decode(&expected)
 	if err != nil {
 		t.Fatalf("error decoding json: %v", err)
@@ -33,11 +33,11 @@ func loadExpected(t *testing.T, name string) *config {
 	// to pass, we need to eliminate nil slices (sections of config and
 	// options of section) manually.
 	if expected.Sections == nil {
-		expected.Sections = []*section{}
+		expected.Sections = []*Section{}
 	}
 	for _, sec := range expected.Sections {
 		if sec.Options == nil {
-			sec.Options = []*option{}
+			sec.Options = []*Option{}
 		}
 	}
 	return expected
