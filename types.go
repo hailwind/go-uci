@@ -297,6 +297,24 @@ func (s *Section) Get(name string) *Option {
 	return nil
 }
 
+func (s *Section) OptionValue(name string, values ...string) []string {
+	for _, opt := range s.Options {
+		if opt.Name == name {
+			return opt.Values
+		}
+	}
+	return values
+}
+
+func (s *Section) OptionLastValue(name string, value string) string {
+	for _, opt := range s.Options {
+		if opt.Name == name {
+			return opt.Values[len(opt.Values)-1]
+		}
+	}
+	return value
+}
+
 // An Option is the key to one or more values. Multiple values indicate
 // a list option.
 type Option struct {
