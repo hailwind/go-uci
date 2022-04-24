@@ -297,18 +297,36 @@ func (s *Section) Get(name string) *Option {
 	return nil
 }
 
-func (s *Section) OptionValue(name string, values ...string) []string {
+func (s *Section) Value(option string) []string {
 	for _, opt := range s.Options {
-		if opt.Name == name {
+		if opt.Name == option {
+			return opt.Values
+		}
+	}
+	return []string{}
+}
+
+func (s *Section) ValueDefault(option string, values ...string) []string {
+	for _, opt := range s.Options {
+		if opt.Name == option {
 			return opt.Values
 		}
 	}
 	return values
 }
 
-func (s *Section) OptionLastValue(name string, value string) string {
+func (s *Section) LastValue(option string) string {
 	for _, opt := range s.Options {
-		if opt.Name == name {
+		if opt.Name == option {
+			return opt.Values[len(opt.Values)-1]
+		}
+	}
+	return ""
+}
+
+func (s *Section) LastValueDefault(option string, value string) string {
+	for _, opt := range s.Options {
+		if opt.Name == option {
 			return opt.Values[len(opt.Values)-1]
 		}
 	}
