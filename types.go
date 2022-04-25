@@ -208,6 +208,11 @@ func (c *Config) Del(name string) {
 	}
 }
 
+func (c *Config) SetTainted() {
+	c.tainted = true
+	return
+}
+
 func (c *Config) sectionName(s *Section) string {
 	if s.Name != "" {
 		return s.Name
