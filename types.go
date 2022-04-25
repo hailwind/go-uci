@@ -210,7 +210,6 @@ func (c *Config) Del(name string) {
 
 func (c *Config) SetTainted() {
 	c.tainted = true
-	return
 }
 
 func (c *Config) sectionName(s *Section) string {
@@ -346,8 +345,8 @@ type Option struct {
 	Type   OptionType `json:"type"`
 }
 
-// newOption returns a new option object.
-func newOption(name string, optionType OptionType, values ...string) *Option {
+// NewOption returns a new option object.
+func NewOption(name string, optionType OptionType, values ...string) *Option {
 	return &Option{
 		Name:   name,
 		Values: values,
