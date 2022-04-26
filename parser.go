@@ -244,9 +244,9 @@ func parse(name, input string) (cfg *Config, err error) {
 		case tokSection:
 			name := tok.items[0].val
 			if len(tok.items) == 2 {
-				sec = cfg.Merge(newSection(name, tok.items[1].val))
+				sec = cfg.Merge(NewSection(name, tok.items[1].val))
 			} else {
-				sec = cfg.Add(newSection(name, ""))
+				sec = cfg.Add(NewSection(name, ""))
 			}
 
 		case tokOption:

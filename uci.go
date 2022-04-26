@@ -364,7 +364,7 @@ func (t *tree) AddSection(config, section, typ string) error {
 	}
 	sec := cfg.Get(section)
 	if sec == nil {
-		cfg.Add(newSection(typ, section))
+		cfg.Add(NewSection(typ, section))
 		cfg.tainted = true
 		return nil
 	}

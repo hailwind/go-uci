@@ -249,8 +249,8 @@ type Section struct {
 	Options []*Option `json:"options,omitempty"`
 }
 
-// newSection returns a new Section object.
-func newSection(typ, name string) *Section {
+// NewSection returns a new Section object.
+func NewSection(typ, name string) *Section {
 	return &Section{
 		Type:    typ,
 		Name:    name,
