@@ -160,6 +160,29 @@ func (c *Config) Add(s *Section) *Section {
 	return s
 }
 
+func (c *Config) Insert(index int, s *Section) *Section {
+	if index > len(c.Sections)-1 {
+		return c.Add(s)
+	}
+
+	if index <= 0 {
+		// insert at the beginning of the slice
+		sections := make([]*Section, len(c.Sections)+1)
+		sections = append(sections, s)
+		sections = append(sections, c.Sections...)
+		c.Sections = sections
+
+		return s
+	}
+
+	sections := make([]*Section, len(c.Sections)+1)
+	sections = append(sections, c.Sections[:index]...)
+	sections = append(sections, s)
+	sections = append(sections, c.Sections[index:]...)
+	c.Sections = sections
+	return s
+}
+
 func (c *Config) Merge(s *Section) *Section {
 	var sec *Section
 	for i := range c.Sections {
@@ -258,8 +281,32 @@ func NewSection(typ, name string) *Section {
 	}
 }
 
-func (s *Section) Add(o *Option) {
+func (s *Section) Add(o *Option) *Option {
 	s.Options = append(s.Options, o)
+	return o
+}
+
+func (s *Section) Insert(index int, o *Option) *Option {
+	if index > len(s.Options)-1 {
+		return s.Add(o)
+	}
+
+	if index <= 0 {
+		// insert at the beginning of the slice
+		options := make([]*Option, len(s.Options)+1)
+		options = append(options, o)
+		options = append(options, s.Options...)
+		s.Options = options
+
+		return o
+	}
+
+	options := make([]*Option, len(s.Options)+1)
+	options = append(options, s.Options[:index]...)
+	options = append(options, o)
+	options = append(options, s.Options[index:]...)
+	s.Options = options
+	return o
 }
 
 func (s *Section) Merge(o *Option) {
