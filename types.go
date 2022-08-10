@@ -175,7 +175,7 @@ func (c *Config) Insert(index int, s *Section) *Section {
 		return s
 	}
 
-	sections := make([]*Section, len(c.Sections)+1)
+	var sections []*Section
 	sections = append(sections, c.Sections[:index]...)
 	sections = append(sections, s)
 	sections = append(sections, c.Sections[index:]...)
@@ -301,7 +301,7 @@ func (s *Section) Insert(index int, o *Option) *Option {
 		return o
 	}
 
-	options := make([]*Option, len(s.Options)+1)
+	var options []*Option
 	options = append(options, s.Options[:index]...)
 	options = append(options, o)
 	options = append(options, s.Options[index:]...)
