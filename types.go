@@ -204,6 +204,24 @@ func (c *Config) Merge(s *Section) *Section {
 	return sec
 }
 
+func (c *Config) MergeReplace(original, section *Section) {
+	for index := range original.Options {
+		name := original.Options[index].Name
+		r := section.Get(name)
+		if r != nil {
+			original.Options[index] = r
+		}
+	}
+
+	for index := range section.Options {
+		name := section.Options[index].Name
+		r := original.Get(name)
+		if r == nil {
+			original.Add(section.Options[index])
+		}
+	}
+}
+
 func (c *Config) Del(name string) {
 	var i int
 	indexs := make(map[string]int, 5)
