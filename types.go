@@ -366,6 +366,16 @@ func (s *Section) Get(name string) *Option {
 	return nil
 }
 
+func (s *Section) SaveOrInsert(option *Option) {
+	original := s.Get(option.Name)
+
+	if original == nil {
+		s.Add(option)
+	} else {
+		*original = *option
+	}
+}
+
 func (s *Section) Value(option string) []string {
 	for _, opt := range s.Options {
 		if opt.Name == option {
