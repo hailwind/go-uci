@@ -58,6 +58,11 @@ func Set(config, section, option string, values ...string) bool {
 	return defaultTree.Set(config, section, option, values...)
 }
 
+// Set delegates to the default tree. See Tree for details.
+func SetList(config, section, option string, values ...string) bool {
+	return defaultTree.SetType(config, section, option, TypeList, values...)
+}
+
 // Del delegates to the default tree. See Tree for details.
 func Del(config, section, option string) {
 	defaultTree.Del(config, section, option)
